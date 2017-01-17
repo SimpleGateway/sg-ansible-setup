@@ -1,0 +1,17 @@
+---
+- name: Install python2
+  become: yes
+  become_method: su
+  raw: sh -c "test -e /usr/local/bin/python2.7 || pkg_add -z python-2.7"
+  register: command_result
+  changed_when: command_result.stdout != '\r\n'
+
+- name: Enable Doas
+  become: yes
+  become_method: su
+  copy:
+    src: doas.conf
+    dest: /etc/doas.conf
+    owner: root
+    group: wheel
+    mode: 0644
