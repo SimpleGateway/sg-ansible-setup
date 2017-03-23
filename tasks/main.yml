@@ -1,10 +1,18 @@
 ---
+- name: Check if python is installed
+  become: no
+  raw: sh -c "stat /usr/bin/python > /dev/null"
+  changed_when: python_present.rc != 0
+  register: python_present
+  ignore_errors: yes
+
 - name: Install python2
   become: yes
   become_method: su
-  raw: sh -c "test -e /usr/local/bin/python2.7 || pkg_add -z python-2.7"
-  register: command_result
-  changed_when: command_result.stdout != '\r\n'
+  raw: sh -c "PKG_PATH={{ sg_pkg_path }} pkg_add -z python-2.7 && ln -sf /usr/local/bin/python2.7 /usr/bin/python"
+  register: install_python
+  changed_when: install_python.stdout != '\r\n'
+  when: python_present.changed
 
 - name: Enable Doas
   become: yes
@@ -15,3 +23,5 @@
     owner: root
     group: wheel
     mode: 0644
+  when: python_present.changed
+  register: doas_enabled
